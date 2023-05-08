@@ -1,0 +1,322 @@
+<!-- AWP_In_Variable Name='"IOMotor".Position' -->
+<!-- AWP_In_Variable Name='"IOMotor".Velocety' -->
+<!-- AWP_In_Variable Name='"IOMotor".ProgramNumber' -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <title>Motor and Robot commissioning</title>
+
+    <script src="raphael-2.1.4.min.js"></script>
+    <script src="justgage.js"></script>
+    <script src="jquery-3.2.1.min.js"></script>
+    <link rel="stylesheet" href="mystyle.css">
+    <link rel="stylesheet" href="switch.css" type="text/css" media="screen"/>
+
+</head>
+
+<body>
+<div id="container">
+
+
+    <div id="header">
+        <div class="title1"><img src="Logo.jpg" alt="GLAMATIC_LOGO"></div>
+        <div class="title2">Motor and Robot commissioning</div>
+        <div class="title3" id="DateNow">12:0:0 PM</div>
+    </div>
+
+
+    <div id="content">
+
+        <h3>Auto control - Motor</h3>
+        <table class="Table">
+            <tr>
+                <th align="left" title="0 - 63">Program number
+                </th>
+                <th>
+                    <input size="6" type="text" min="0" max="63" class="Field" id="ProgramNum" value=0 enable/>
+                </th>
+            </tr>
+            <tr>
+                <th align="left" style="text-align:justify" title="ON=Run ON, OFF=Run OFF">Run Program
+                </th>
+                <th class="switch"><span class="thumb"> </span><input type="checkbox"
+                                                                      id='"IOMotor".RunProgram'/>
+            </tr>
+        </table>
+
+
+        <h3>Monitoring - Motor</h3>
+        <table class="Table">
+            <tr>
+                <th>Homed:
+                </th>
+                <th style="width:100px" id="StatusHomed">No
+                </th>
+            </tr>
+            <tr>
+                <th>Error:
+                </th>
+                <th style="width:100px" id="StatusError_1">No
+                </th>
+            </tr>
+            <tr>
+                <th>Current Position:
+                </th>
+                <th style="width:100px" id="Current_Position">0.0
+                </th>
+            </tr>
+        </table>
+
+
+        <h3>Monitoring - Robot</h3>
+        <table class="Table">
+            <tr>
+                <th>Error:
+                </th>
+                <th style="width:100px" id="RobotError">No
+                </th>
+            </tr>
+            <tr>
+                <th>Offline task runing:
+                </th>
+                <th style="width:100px" id="RobotOfflineTask">No
+                </th>
+            </tr>
+        </table>
+
+
+        <h3>Manual control - Motor</h3>
+        <table class="Table">
+            <tr>
+                <th align="left" style="text-align:justify" title="ON=Manual ON, OFF=Manual OFF">Manual
+                </th>
+                <th class="switch"><span class="thumb"> </span><input type="checkbox" id='"IOMotor".Manual'/>
+                </th>
+            </tr>
+            <tr>
+                <th align="left" style="text-align:justify">Enable
+                </th>
+                <th class="switch"><span class="thumb"> </span><input type="checkbox" id='"IOMotor".Enable'/>
+                </th>
+            </tr>
+            <tr>
+                <th align="left" style="text-align:justify" title="ON=Homing ON, OFF=Homing OFF">Execute homing
+                </th>
+                <th class="switch"><span class="thumb"> </span><input type="checkbox"
+                                                                      id='"IOMotor".ExecuteHoming'/>
+                </th>
+            </tr>
+            <tr>
+                <th align="left" title="70.0 - 100.0">Velocity [mm/s]
+                </th>
+                <th>
+                    <input size="6" type="text" min="70.0" max="100.0" class="Field" id="Velocity" value=70.0 enable/>
+                </th>
+            </tr>
+            <tr>
+                <th align="left" title="0.0 - 600.0">Position [mm]
+                </th>
+                <th>
+                    <input size="6" type="text" min="0.0" max="600.0" class="Field" id="Position"
+                           value=0.0 enable/>
+                </th>
+            </tr>
+            <tr>
+                <th align="left" style="text-align:justify" title="ON=Execute move ON, OFF=Execute move off">
+                    Execute move
+                </th>
+                <th class="switch"><span class="thumb"> </span><input type="checkbox" id='"IOMotor".Execute'/>
+                </th>
+            </tr>
+            <tr>
+                <th align="left" style="text-align:justify" title="ON=Reset ON, OFF=Reset off">Reset Error
+                </th>
+                <th class="switch"><span class="thumb"> </span><input type="checkbox" id='"IOMotor".ResetError'/>
+                </th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script>
+		(function () {
+			var $$ = function (selector) {
+				return Array.prototype.slice.call(document.querySelectorAll(selector));
+			}
+			document.addEventListener("DOMContentLoaded", function () {
+				var checkbox;
+				$$(".switch").forEach(function (switchControl) {
+					if (switchControl.className === ("switch on")) {
+						switchControl.lastElementChild.checked = true;
+					}
+					switchControl.addEventListener("click", function toggleSwitch() {
+						if (switchControl.className === "switch on") {
+							switchControl.className = 'switch off';
+						} else {
+							switchControl.className = ("switch on");
+						}
+						checkbox = switchControl.lastElementChild;
+
+						checkbox.checked = !checkbox.checked;
+						//var url = "/" + window.location.pathname.substr(1);
+						url = "IOServer.htm";
+						var ival = +checkbox.checked;
+						var sdata = checkbox.id;
+						//alert(ival);
+						sdata = escape(sdata) + '=' + ival;
+						//alert(sdata);
+
+						$.post(url, sdata, function (result, status) { });
+						//alert(status);
+					}, false);
+				});
+
+				// Velocity error
+				document.getElementById('Velocity').addEventListener('keypress', function (event1) {
+					if (event1.key == "Enter") {
+						var val = document.getElementById('Velocity').value;
+
+
+						if (val > 100.0) {
+							val = 100.0;
+							alert("Value must be between 70.0 and 100.0");
+							document.getElementById('Velocity').value = val;
+						}
+						else if (val < 70.0) {
+							val = 70.0;
+							alert("Value must be between 70.0 and 100.0");
+							document.getElementById('Velocity').value = val;
+						}
+
+
+
+						url = "IOServer.htm";
+						name = '"IOMotor".Velocety';
+						//val=$('input[id=Power]').val();
+						sdata = escape(name) + '=' + val;
+						//alert(sdata);
+						$.post(url, sdata, function (result2) { });
+
+
+					}
+					return false;
+				}, false);
+
+
+				//Position error
+				document.getElementById('Position').addEventListener('keypress', function (event1) {
+					if (event1.key == "Enter") {
+						var val = document.getElementById('Position').value;
+
+
+						if (val > 600.0) {
+							val = 600.0;
+							alert("Value must be between 0.0 and 600.0");
+							document.getElementById('Position').value = val;
+						}
+						else if (val < 0.0) {
+							val = 0.0;
+							alert("Value must be between 0.0 and 1000.0");
+							document.getElementById('Position').value = val;
+						}
+
+
+
+						url = "IOServer.htm";
+						name = '"IOMotor".Position';
+						//val=$('input[id=Power]').val();
+						sdata = escape(name) + '=' + val;
+						//alert(sdata);
+						$.post(url, sdata, function (result2) { });
+
+
+					}
+					return false;
+				}, false);
+
+
+				//Program error
+				document.getElementById('ProgramNum').addEventListener('keypress', function (event1) {
+					if (event1.key == "Enter") {
+						var val = document.getElementById('ProgramNum').value;
+
+
+						if (val > 63) {
+							val = 63;
+							alert("Value must be between 0 and 63");
+							document.getElementById('ProgramNum').value = val;
+						}
+						else if (val < 0) {
+							val = 0;
+							alert("Value must be between 0 and 63");
+							document.getElementById('ProgramNum').value = val;
+						}
+
+
+
+						url = "IOServer.htm";
+						name = '"IOMotor".ProgramNumber';
+						//val=$('input[id=Power]').val();
+						sdata = escape(name) + '=' + val;
+						//alert(sdata);Status
+						$.post(url, sdata, function (result2) { });
+
+
+					}
+					return false;
+				}, false);
+
+
+
+				$.ajaxSetup({ cache: false });
+				setInterval(function () {
+					url = "IOServer.htm";
+					$.getJSON(url, function (result) {
+						$('#Current_Position').text(result["CurrentPosition"]);
+
+						if (result["StatusHomed"] == 0) {
+							$('#StatusHomed').text("No");
+						}
+						else {
+							$('#StatusHomed').text("Yes");
+						}
+
+
+						if (result["StatusError"] == 0) {
+							$('#StatusError_1').text("No");
+						}
+						else {
+							$('#StatusError_1').text("Yes");
+						}
+
+
+						if (result["RobotError"] == 0) {
+							$('#RobotError').text("No");
+						}
+						else {
+							$('#RobotError').text("Yes");
+						}
+
+
+						if (result["RobotOfflineTask"] == 0) {
+							$('#RobotOfflineTask').text("No");
+						}
+						else {
+							$('#RobotOfflineTask').text("Yes");
+						}
+					});
+					var d = new Date();
+					//var n = d.toLocaleDateString();
+					var m = d.toLocaleTimeString();
+					$('#DateNow').text(m);
+				}, 1000);
+			}, false);
+		})()
+
+
+</script>
+</body>
+
+</html>
